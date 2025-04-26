@@ -54,7 +54,41 @@ This document outlines all the tools, frameworks, and services required for your
 - [ ] Docker & Docker Compose installed
 - [ ] Git installed
 - [ ] Python, Java, Node.js installed
-- [ ] Minikube or Kind + kubectl installed
+- [ ] Docker Desktop installed and running
+- [ ] Docker Compose file for Kafka/Zookeeper created
+- [ ] Kafka and Zookeeper containers running
+- [ ] Producers/consumers tested locally
+
+### How to Run Kafka and Zookeeper Locally
+
+1. **Start the containers:**
+   ```sh
+   docker-compose up -d
+   ```
+   This will start both Kafka and Zookeeper in the background.
+
+2. **Check service status:**
+   ```sh
+   docker-compose ps
+   ```
+   Both `kafka` and `zookeeper` should show as `Up`.
+
+3. **View logs (optional):**
+   ```sh
+   docker-compose logs kafka
+   docker-compose logs zookeeper
+   ```
+
+4. **Stop the containers:**
+   ```sh
+   docker-compose down
+   ```
+
+- Kafka will be available at `localhost:9092`
+- Zookeeper will be available at `localhost:2181`
+
+_You can now use Kafka clients, producers, and consumers for learning and experimentation._
+
 - [ ] Prometheus, Grafana, Kafka Exporter ready
 - [ ] MongoDB available (local or managed)
 - [ ] Accounts for Confluent Cloud and AWS

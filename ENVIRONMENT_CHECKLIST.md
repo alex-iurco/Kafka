@@ -20,7 +20,7 @@
 - [x] Node.js 18+ (native install) — 18.19.1
 
 ## 4. Orchestration
-- [ ] Minikube or Kind (native install) — not installed
+- [x] Minikube (native install) — v1.35.0
 - [x] kubectl (native install) — v1.32.2 (from Docker Desktop)
 
 ## 5. Kafka Ecosystem
