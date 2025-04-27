@@ -14,18 +14,22 @@
   - [x] Docker Compose version >= 1.29 — v2.33.1
 - [x] Git (native install) — 2.37.1
 
-## 3. Programming Languages
+## 3. Programming Languages & Tooling
 - [x] Python 3.8+ (native install) — 3.10.2
 - [x] Java 11+ (native install) — 20.0.2
+  - [x] Maven (native install) — 3.9.9
+  - [x] Gradle (native install) — 8.14
 - [x] Node.js 18+ (native install) — 18.19.1
 
 ## 4. Orchestration
-- [x] Minikube (native install) — v1.35.0
-- [x] kubectl (native install) — v1.32.2 (from Docker Desktop)
+- [ ] Minikube (removed; using Google Cloud GKE instead)
+- [x] kubectl (native install) — v1.32.2 (from Google Cloud SDK)
+- [x] Google Cloud SDK (native install)
+- [x] GKE Autopilot/Standard (cloud) — **Successfully deployed and tested**
 
 ## 5. Kafka Ecosystem
-- [ ] Kafka (Docker)
-- [ ] Kafka CLI tools (Docker)
+- [x] Kafka (GKE Autopilot, Helm/Bitnami) — **Running in cloud**
+- [x] Kafka CLI tools (via client pod) — **Tested**
 - [ ] Kafka Connect (Docker)
 - [ ] Kafka Streams (Java, native or Docker)
 - [ ] ksqlDB (optional, Docker)
@@ -49,9 +53,13 @@
 
 ## 10. Security
 - [ ] SSL setup (later)
-- [ ] SASL/ACLs (optional)
+- [x] SASL/ACLs (Helm default, tested)
 
 ---
 
 ## Notes & Blockers
-- Note any issues, blockers, or troubleshooting tips here.
+- GKE Autopilot cluster successfully created in us-central1 after troubleshooting regional resource and quota issues.
+- Kafka and Zookeeper deployed using Bitnami Helm charts.
+- PersistentVolumeClaim (PVC) affinity and GCP quota issues can cause pod scheduling failures; resolved by deleting and recreating PVCs in available zones.
+- Kafka CLI client pod deployed and successfully produced/consumed messages with SASL/SCRAM authentication.
+- Next: Implement Java/Python/Node.js producers and consumers as Kubernetes pods for microservices development.

@@ -11,18 +11,21 @@ This document outlines all the tools, frameworks, and services required for your
 ## 2. Programming Languages & Frameworks
 - **Python**: For producers/consumers and microservices (FastAPI)
 - **Java**: For producers/consumers, Kafka Streams, and microservices (Spring Boot)
+  - **Maven** and **Gradle**: Java build tools (installed)
 - **Node.js**: For producers/consumers and microservices (Express)
 
 ## 3. Kafka Ecosystem
-- **Apache Kafka**: Core messaging platform (local via Docker, managed via Confluent Cloud/AWS MSK)
+- **Apache Kafka**: Core messaging platform (local via Docker, managed via Confluent Cloud/AWS MSK, or **GKE Autopilot via Helm/Bitnami**)
 - **Kafka Connect**: For integrating with MongoDB and other data sources/sinks
 - **Kafka Streams**: For stream processing (Java)
 - **ksqlDB**: Optional, for SQL-like stream processing
 
 ## 4. Orchestration
 - **Kubernetes**: For orchestrating multi-service deployments
-  - **Minikube** or **Kind**: Lightweight local Kubernetes clusters
+  - ~~**Minikube** or **Kind**: Lightweight local Kubernetes clusters~~ (removed; using **GKE Autopilot via Google Cloud**)
   - **kubectl**: Kubernetes command-line tool
+  - **Google Cloud SDK**: For managing GKE clusters
+  - **GKE (Google Kubernetes Engine)**: Cloud Kubernetes service (**Autopilot** mode tested)
 
 ## 5. Monitoring & Analytics
 - **Prometheus**: Metrics collection
@@ -43,7 +46,7 @@ This document outlines all the tools, frameworks, and services required for your
 
 ## 9. Security
 - **SSL**: For securing Kafka connections (start here)
-- **SASL/ACLs**: Optional, for advanced security
+- **SASL/ACLs**: Enabled by default in Bitnami Helm chart (tested)
 
 ## 10. REST APIs & Microservices
 - **FastAPI** (Python), **Spring Boot** (Java), **Express** (Node.js): For microservices-first architecture
@@ -51,48 +54,75 @@ This document outlines all the tools, frameworks, and services required for your
 ---
 
 ## Setup Checklist
-- [ ] Docker & Docker Compose installed
-- [ ] Git installed
-- [ ] Python, Java, Node.js installed
-- [ ] Docker Desktop installed and running
-- [ ] Docker Compose file for Kafka/Zookeeper created
-- [ ] Kafka and Zookeeper containers running
+- [x] Docker & Docker Compose installed
+- [x] Git installed
+- [x] Python, Java, Node.js, Maven, Gradle installed
+- [x] Docker Desktop installed and running
+- [x] GKE Autopilot cluster created and healthy
+- [x] Kafka and Zookeeper deployed on GKE via Helm/Bitnami
+- [x] Kafka CLI client pod deployed and tested (produce/consume messages)
+- [ ] Docker Compose file for local Kafka/Zookeeper
+- [ ] Kafka and Zookeeper containers running locally
 - [ ] Producers/consumers tested locally
-
-### How to Run Kafka and Zookeeper Locally
-
-1. **Start the containers:**
-   ```sh
-   docker-compose up -d
-   ```
-   This will start both Kafka and Zookeeper in the background.
-
-2. **Check service status:**
-   ```sh
-   docker-compose ps
-   ```
-   Both `kafka` and `zookeeper` should show as `Up`.
-
-3. **View logs (optional):**
-   ```sh
-   docker-compose logs kafka
-   docker-compose logs zookeeper
-   ```
-
-4. **Stop the containers:**
-   ```sh
-   docker-compose down
-   ```
-
-- Kafka will be available at `localhost:9092`
-- Zookeeper will be available at `localhost:2181`
-
-_You can now use Kafka clients, producers, and consumers for learning and experimentation._
-
 - [ ] Prometheus, Grafana, Kafka Exporter ready
 - [ ] MongoDB available (local or managed)
 - [ ] Accounts for Confluent Cloud and AWS
 - [ ] FastAPI, Spring Boot, Express sample projects scaffolded
+
+### How to Run Kafka and Zookeeper on GKE Autopilot
+
+1. **Create GKE Autopilot cluster** in your preferred region (e.g., `us-central1`).
+2. **Install Helm** and add the Bitnami repo:
+   ```sh
+   helm repo add bitnami https://charts.bitnami.com/bitnami
+   helm repo update
+   ```
+3. **Create a namespace for Kafka:**
+   ```sh
+   kubectl create namespace kafka
+   ```
+4. **Deploy Zookeeper:**
+   ```sh
+   helm install zookeeper bitnami/zookeeper --namespace kafka
+   ```
+5. **Deploy Kafka:**
+   ```sh
+   helm install kafka bitnami/kafka --namespace kafka
+   ```
+6. **Troubleshooting:**
+   - If Zookeeper or Kafka pods are stuck in `Pending`, check for resource quota or PVC affinity issues.
+   - Delete and recreate PVCs if necessary to resolve zone conflicts.
+   - Monitor with:
+     ```sh
+     kubectl get pods -n kafka -o wide
+     kubectl describe pod <pod-name> -n kafka
+     ```
+
+7. **Test with Kafka client pod:**
+   - Deploy a CLI pod:
+     ```sh
+     kubectl run kafka-client --restart='Never' --image docker.io/bitnami/kafka:4.0.0-debian-12-r3 --namespace kafka --command -- sleep infinity
+     ```
+   - Copy your `client.properties` file (with SASL credentials) into the pod and test producing/consuming messages.
+
+---
+
+## Troubleshooting Notes
+- **PVC Affinity/Quota:** GKE Autopilot may bind PVCs to zones with no available nodes. If pods are unschedulable, delete and recreate the StatefulSet and PVC to allow rebinding in a zone with available resources.
+- **Authentication:** Bitnami Kafka uses SASL/SCRAM by default. Extract the password from the `kafka-user-passwords` secret and use it in your client configuration.
+- **Scaling:** Autopilot manages node scaling, but you may need to request quota increases for large clusters.
+
+---
+
+## Next Steps: Java/Python/Node.js Producers & Consumers
+- Scaffold sample producer/consumer projects in Java, Python, and Node.js.
+- Build Docker images for each and deploy as Kubernetes pods in the `kafka` namespace.
+- Use internal DNS (`kafka.kafka.svc.cluster.local:9092`) and the same SASL credentials for connectivity.
+- Test message flow between microservices and Kafka topics.
+
+---
+
+_You now have a cloud-native, production-like Kafka environment ready for microservices development and experimentation!_
 
 ---
 
